@@ -3,6 +3,7 @@ import JobFilters from './JobFilters.js';
 import JobSources from './JobSources.js';
 import JobResults from './JobResults.js';
 import JobGraphs from './JobGraphs.js'
+import getJSON from './lib/getJSON.js';
 
 class JobStats extends React.Component {
   constructor(props) {
@@ -14,7 +15,9 @@ class JobStats extends React.Component {
         20083795: {
           name: "Ask HN: Who is hiring? (June 2019)",
           address: "https://news.ycombinator.com/item?id=20083795",
-          enabled: true
+          enabled: true,
+          childCount: 799,
+          children: []
         }
       },
       jobStats: {
@@ -28,26 +31,10 @@ class JobStats extends React.Component {
           dateCreated: '20190911',
         },
       },
-    }
-  }
-  
-
-  getJSON(url) {
-    return new Promise((resolve, reject) => {
-      let request = new XMLHttpRequest();
-      request.onreadystatechange = () => {
-        if (request.readyState === XMLHttpRequest.DONE) {
-          if (request.status === 200) {
-            // Great success!
-            resolve(JSON.parse(request.responseText));
-          } else if (typeof reject !== undefined) {
-            reject(`${request.status}: ${request.statusText}`);
-          }
-        }
+      filteredJobs: {
+        0: {}
       }
-      request.open("GET", url);
-      request.send();
-    });
+    }
   }
 
   updateInfo(key, value) {
@@ -63,10 +50,10 @@ class JobStats extends React.Component {
       let count = 0;
       let MAX_JOBS = 5;
       jobIDs.forEach(jobID => {
-        requestDelay += 200;        
+        requestDelay += 100;        
         if (count < MAX_JOBS) {
           setTimeout(() => {
-            this.getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
+            getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
             .then((jobData) => {
               this.cleanupAndAddJobData(jobData);
             })
@@ -101,27 +88,12 @@ class JobStats extends React.Component {
     });
   }
 
-  handleClick(val) {
-    if (val === undefined) {      
-      this.getJSON("https://hacker-news.firebaseio.com/v0/item/20083795.json")
-      .then((listingPageJSON) => {
-        this.getJobsFromIDs(listingPageJSON.kids);
-      })
-      .then(() => {
-        // All job requests scheduled.
-      })
-    } else {
-      this.setState({value: val});
-    }
-  }
-
   render() {
     return (
       <div>
         <JobFilters jobFilters={this.state.jobFilters} updateFilters={(filters) => { this.updateInfo('jobFilters', filters); }} />
         <JobSources jobSources={this.state.jobSources} updateJobSources={(sources) => { this.updateInfo('jobSources', sources); }} />
-        <button onClick={() => this.handleClick()}>Scan Jobs</button>
-        <JobResults jobs={this.state.jobs} jobCount={this.state.jobStats.jobCount} />
+        <JobResults jobs={this.state.filteredJobs} jobCount={this.state.jobStats.jobCount} />
         <JobGraphs jobStats={this.state.jobStats} />
       </div>
      );

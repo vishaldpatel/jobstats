@@ -1,4 +1,5 @@
 import React from 'react';
+import getJSON from './lib/getJSON.js';
 
 class JobSources extends React.Component {
   constructor(props) {
@@ -6,6 +7,7 @@ class JobSources extends React.Component {
     
     this.state = {
       jobSources: props.jobSources || {},
+      newJobSourceAddress: ""
     }
   }
 
@@ -14,10 +16,37 @@ class JobSources extends React.Component {
     // get its title, id, children list
     // check to make sure the title has "who is hiring"
     // in it.
+
+    let hnResult = this.state.newJobSourceAddress.match(/^(https:\/\/news\.ycombinator\.com\/item\?id=)([0-9]*)$/);
+    if (hnResult) {
+      let jobSourceID = hnResult[2];
+      getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobSourceID}.json`)
+      .then((listingPageJSON) => {
+        this.setState({
+          jobSources: {
+            ...this.state.jobSources,
+            [jobSourceID]: {
+              name: listingPageJSON.title,
+              address: this.state.newJobSourceAddress,
+              childCount: listingPageJSON.descendants,
+              children: listingPageJSON.kids,
+              enabled: true,
+            }
+          }
+        });
+      })
+      .then(() => {
+        // All done requesting.
+      })
+    } else {
+      alert('no match');
+    }
   }
 
-  newJobSourceChanged() {
-
+  inputChanged(inputName, value) {
+    this.setState({
+      [inputName]: value,
+    })
   }
 
   toggleJobSourceClicked(jobID) {
@@ -44,10 +73,12 @@ class JobSources extends React.Component {
   render() {
     return(      
       <div className="JobSources">
-        <input type="text" onChange={() => this.newJobSourceChanged()} />
+        <input type="text" 
+            onChange={(e) => this.inputChanged("newJobSourceAddress", e.target.value)} 
+            placeholder="http://news.ycombinator..." />
         <button onClick={() => this.addJobSourceClicked()}>Add Source</button>
         <ul className="JobSources">
-          {this.jobSources()}
+          {this.jobSources()}e
         </ul>
       </div>
     );

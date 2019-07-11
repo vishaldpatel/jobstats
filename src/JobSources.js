@@ -22,18 +22,20 @@ class JobSources extends React.Component {
       let jobSourceID = hnResult[2];
       getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobSourceID}.json`)
       .then((listingPageJSON) => {
-        this.setState({
-          jobSources: {
-            ...this.state.jobSources,
-            [jobSourceID]: {
-              name: listingPageJSON.title,
-              address: this.state.newJobSourceAddress,
-              childCount: listingPageJSON.descendants,
-              children: listingPageJSON.kids,
-              enabled: true,
+        if (listingPageJSON.title.includes("Ask HN: Who is hiring?")) {
+          this.setState({
+            jobSources: {
+              ...this.state.jobSources,
+              [jobSourceID]: {
+                name: listingPageJSON.title,
+                address: this.state.newJobSourceAddress,
+                childCount: listingPageJSON.descendants,
+                children: listingPageJSON.kids,
+                enabled: true,
+              }
             }
-          }
-        });
+          });
+        }
       })
       .then(() => {
         // All done requesting.
@@ -78,7 +80,7 @@ class JobSources extends React.Component {
             placeholder="http://news.ycombinator..." />
         <button onClick={() => this.addJobSourceClicked()}>Add Source</button>
         <ul className="JobSources">
-          {this.jobSources()}e
+          {this.jobSources()}
         </ul>
       </div>
     );

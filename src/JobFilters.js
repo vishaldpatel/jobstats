@@ -3,24 +3,15 @@ import React from 'react';
 class JobFilters extends React.Component {
   constructor(props) {
     super(props);
-    if (props.jobFilters !== undefined) {
-      this.state = {
-        filters: props.jobFilters,
-        newFilter: "NotNew"
-      }
-    } else {
-      this.state = {
-        filters: {
-          1: { name: "SF&Elixir", enabled: true },
-          2: { name: "Los Angeles", enabled: false },
-        },
-        newFilter: "Pretty New"
-      }
+
+    this.state = {
+      filters: props.jobFilters || {},
+      newFilter: "NotNew"
     }
   }
 
   updateFilterProps() {
-    if (this.props.updateInfo !== undefined) {
+    if (typeof(this.props.updateInfo) !== 'undefined') {
       this.props.updateFilters(this.state.filters)
     }
   }
@@ -28,6 +19,7 @@ class JobFilters extends React.Component {
   addFilterClicked() {
     // Update State
     // Notify parent that a new item was added
+    
     this.setState((state, props) => {
       return {
         newFilter: "Reset"
@@ -36,17 +28,10 @@ class JobFilters extends React.Component {
     this.updateFilterProps();
   }
 
-  toggleFilterClicked(filterID) {
-    this.setState({
-      filters: {
-        ...this.state.filters,
-        [filterID]: {
-          ...this.state.filters[filterID],
-          enabled: !this.state.filters[filterID].enabled 
-        }
-      }
-    });
-    this.updateFilterProps();
+  toggleFilterClicked(filterKey) {
+    let newState = this.state;
+    newState.filters[filterKey].enabled = !newState.filters[filterKey].enabled;
+    this.setState(newState, () => this.updateFilterProps());
   }
 
   deleteFilterClicked(filterID) {
@@ -70,7 +55,7 @@ class JobFilters extends React.Component {
       return (
         <li key={filterKey} className="FilterItem">
           <input type="checkbox" defaultChecked={filter.enabled} onClick={() => { this.toggleFilterClicked(filterKey); }} />
-          {filter.name}
+          {filterKey}
         </li>
       );
     });

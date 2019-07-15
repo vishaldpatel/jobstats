@@ -19,21 +19,16 @@ class JobSources extends React.Component {
     })
   }
 
-  toggleJobSourceClicked(jobID) {
-    alert(jobID);
-  }
-
-  deleteJobSourceClicked() {
-
-  }
-
   jobSources() {
     return Object.keys(this.props.jobSources).map((key) => {
       // do stuff
       let jobSource = this.props.jobSources[key];
       return (
         <li key={key} className="JobSourceItem">
-          <input type="checkbox" defaultChecked={jobSource.enabled} onClick={() => { this.toggleJobSourceClicked(key); }} />
+          <input type="checkbox" 
+            defaultChecked={jobSource.enabled} 
+            value={key}
+            onClick={(event) => { this.props.toggleJobSource(event.target.value, event.target.checked); }} />
           {jobSource.name}
         </li>
       );

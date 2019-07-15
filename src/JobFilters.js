@@ -5,56 +5,30 @@ class JobFilters extends React.Component {
     super(props);
 
     this.state = {
-      filters: props.jobFilters || {},
       newFilter: "NotNew"
     }
   }
 
-  updateFilterProps() {
-    if (typeof(this.props.updateInfo) !== 'undefined') {
-      this.props.updateFilters(this.state.filters)
-    }
-  }
-
   addFilterClicked() {
-    // Update State
-    // Notify parent that a new item was added
-    
-    this.setState((state, props) => {
-      return {
-        newFilter: "Reset"
-      }
-    });
-    this.updateFilterProps();
+    this.props.addJobFilter(this.state.newFilter);
   }
 
-  toggleFilterClicked(filterKey) {
-    let newState = this.state;
-    newState.filters[filterKey].enabled = !newState.filters[filterKey].enabled;
-    this.setState(newState, () => this.updateFilterProps());
-  }
-
-  deleteFilterClicked(filterID) {
-    // Delete filter
-    this.updateFilterProps();
-  }
-
-  newFilterChanged(element) {
-    // Do nothing
-    this.setState((state, props) => {
-      return {
-        newFilter: "CLICK"
-      }
-    });
+  inputChanged(inputName, value) {
+    this.setState({
+      [inputName]: value,
+    })
   }
 
   filters() {
-    return Object.keys(this.state.filters).map((filterKey) => {
+    return Object.keys(this.props.jobFilters).map((filterKey) => {
       // do stuff
-      let filter = this.state.filters[filterKey];
+      let jobFilter = this.props.jobFilters[filterKey];
       return (
         <li key={filterKey} className="FilterItem">
-          <input type="checkbox" defaultChecked={filter.enabled} onClick={() => { this.toggleFilterClicked(filterKey); }} />
+          <input type="checkbox" 
+            defaultChecked={jobFilter.enabled} 
+            value={filterKey} 
+            onClick={(event) => { this.props.toggleJobFilter(event.target.value, event.target.checked); }} />
           {filterKey}
         </li>
       );
@@ -64,7 +38,9 @@ class JobFilters extends React.Component {
   render() {
     return (
       <div className="JobFilters">
-        <input type="text" onChange={() => this.newFilterChanged()} />
+        <input type="text" 
+            onChange={(e) => this.inputChanged("newFilter", e.target.value)} 
+            placeholder="Some Regex like SF|Los Angeles React|PHP etc.." />
         <button onClick={() => this.addFilterClicked()}>Add Filter</button>
         <ul className="Filters">
           {this.filters()}

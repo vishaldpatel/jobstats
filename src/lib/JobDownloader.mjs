@@ -1,4 +1,5 @@
 import https from 'https';
+import JSZip from 'jszip';
 import fs from 'fs';
 
 class JobDownloader {
@@ -77,30 +78,35 @@ class JobDownloader {
   getJobsFromIDs(jobIDs, callback) {
     // We are going to throttle requests for each child.
     let requestDelay = 200;
-    let jobDataSoFar = 0;
     
-    jobIDs.forEach(jobID => {
+    // jobIDs.slice(0,10).forEach(jobID => {
+    jobIDs.forEach(jobID => {      
       requestDelay += 100;
       
       setTimeout(() => {
         this.getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
         .then((jobData) => {
-          console.log('.');
-          this.cleanupAndAddJobData(jobData);
-          jobDataSoFar++;
-          if ((jobDataSoFar >= jobIDs.length) && (callback !== undefined)) {
-            callback();
-          }
+          process.stdout.write(".");
+          // Not all jobIDs seem to retun good job data
+          this.setState((state) => {
+            state.jobIDCount = state.jobIDCount + 1;
+            return state;
+          }, () => {
+            if (typeof(jobData.text) !== 'undefined') {
+              this.cleanupAndAddJobData(jobData, () => {
+                if (this.state.jobIDCount >= jobIDs.length) {
+                  callback();
+                }
+              });
+            }            
+          });
         })
       }, requestDelay);
     });
 
   }
 
-  cleanupAndAddJobData(jobData) {    
-    if (typeof(jobData.text) === 'undefined') {
-      return -1;
-    }
+  cleanupAndAddJobData(jobData, callback) {
     let dateCreated = new Date(jobData.time*1000).toISOString().split("T")[0];
     let newJob = {
       id: jobData.id,
@@ -115,7 +121,8 @@ class JobDownloader {
       state.jobStats.jobCount = state.jobStats.jobCount + 1;
       state.jobSources[jobData.parent].jobs[newJob.id] = newJob;
       return state;
-    }, () => { 
+    }, () => {
+      callback();
       // this.applyFiltersToJob(newJob);
       // this.reFilterJob(newJob);
     });
@@ -123,12 +130,16 @@ class JobDownloader {
 
 
   saveTo(path) {
-    console.log("\n\nOKAY SO THIS IS STATE:\n");
-    console.log("--------------------------");
-    console.log(this.state);
-    fs.writeFile(path, JSON.stringify(this.state), (err) => {
-      console.log("Great success!");
-    })
+    var zip = new JSZip();
+    zip
+    .file(path, JSON.stringify(this.state))
+    .generateNodeStream({type:'nodebuffer',streamFiles:true})
+    .pipe(fs.createWriteStream(`${path}.zip`))
+    .on('finish', function () {
+        // JSZip generates a readable stream with a "end" event,
+        // but is piped here in a writable stream which emits a "finish" event.
+        console.log(`${path}.zip written.`);
+    });
   }
 
   static basicData() {
@@ -154,6 +165,7 @@ class JobDownloader {
         }
         */
       },
+      jobIDCount: 0,
       jobStats: {
         jobCount: 0,
         filteredJobsCount: 0,

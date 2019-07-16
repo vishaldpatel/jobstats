@@ -9,6 +9,13 @@ class JobsData {
     return this.client.state;
   }
 
+  // TODO: Move the adding of job sources
+  // offline. Lazy load job sources as they
+  // are made online from previously scraped
+  // json files.
+  // jobSource[id] = {...}
+  // jobs[] = {...}
+
   addJobSource(url) {
     return new Promise((resolve, reject) => {
       let hnResult = url.match(/^(https:\/\/news\.ycombinator\.com\/item\?id=)([0-9]*)$/);
@@ -192,6 +199,11 @@ class JobsData {
   }
 
   toggleJobSource(jobSourceID, enabled) {
+    // TODO: Check if jobs from that source have been loaded
+    // if not, then load the jobs first.
+    // If jobs have not been received
+    // then, get the jobs and apply filters them.
+
     jobSourceID = parseInt(jobSourceID);
     this.client.setState((state) => {
       let enabledJobSourceIDIndex = state.enabledJobSourceIDs.indexOf(jobSourceID);

@@ -1,4 +1,5 @@
 import https from 'https';
+import fs from 'fs';
 
 class JobDownloader {
   constructor() {
@@ -42,6 +43,7 @@ class JobDownloader {
                 address: state.newJobSourceAddress,
                 childCount: listingPageJSON.descendants,
                 children: listingPageJSON.kids,
+                jobs: {},
                 enabled: true,
               }
               if (!state.enabledJobSourceIDs.includes(jobSourceID)) {
@@ -64,10 +66,10 @@ class JobDownloader {
   getMissingJobs(callback) {
     let state = this.state;
     let newJobs = Object.keys(state.jobSources).map((key) => {
-      return state.jobSources[key].children;
-    })
-    .flat()
-    .filter((jobKey) => !state.jobs[jobKey]);
+      if (Object.keys(state.jobSources[key].jobs).length === 0) {
+        return state.jobSources[key].children;
+      }
+    }).flat()
     
     this.getJobsFromIDs(newJobs, callback);
   };
@@ -75,30 +77,30 @@ class JobDownloader {
   getJobsFromIDs(jobIDs, callback) {
     // We are going to throttle requests for each child.
     let requestDelay = 200;
-    let count = 0;
     let jobDataSoFar = 0;
-    let MAX_JOBS = 5;
-
+    
     jobIDs.forEach(jobID => {
       requestDelay += 100;
-      if (count < MAX_JOBS) {
-        setTimeout(() => {
-          this.getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
-          .then((jobData) => {
-            this.cleanupAndAddJobData(jobData);
-            jobDataSoFar++;
-            if ((jobDataSoFar >= MAX_JOBS) && (callback !== undefined)) {
-              callback();
-            }
-          })
-        }, requestDelay);
-      }
-      count++;
+      
+      setTimeout(() => {
+        this.getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
+        .then((jobData) => {
+          console.log('.');
+          this.cleanupAndAddJobData(jobData);
+          jobDataSoFar++;
+          if ((jobDataSoFar >= jobIDs.length) && (callback !== undefined)) {
+            callback();
+          }
+        })
+      }, requestDelay);
     });
 
   }
 
-  cleanupAndAddJobData(jobData) {
+  cleanupAndAddJobData(jobData) {    
+    if (typeof(jobData.text) === 'undefined') {
+      return -1;
+    }
     let dateCreated = new Date(jobData.time*1000).toISOString().split("T")[0];
     let newJob = {
       id: jobData.id,
@@ -108,10 +110,10 @@ class JobDownloader {
       paragraph: jobData.text.split("<p>").slice(1),
       dateCreated: dateCreated,
       jobFilters: {},
-    }    
-    this.setState((state) => {    
+    }
+    this.setState((state) => {
       state.jobStats.jobCount = state.jobStats.jobCount + 1;
-      state.jobs[newJob.id] = newJob;
+      state.jobSources[jobData.parent].jobs[newJob.id] = newJob;
       return state;
     }, () => { 
       // this.applyFiltersToJob(newJob);
@@ -120,10 +122,13 @@ class JobDownloader {
   }
 
 
-  save() {
+  saveTo(path) {
     console.log("\n\nOKAY SO THIS IS STATE:\n");
     console.log("--------------------------");
     console.log(this.state);
+    fs.writeFile(path, JSON.stringify(this.state), (err) => {
+      console.log("Great success!");
+    })
   }
 
   static basicData() {
@@ -137,23 +142,21 @@ class JobDownloader {
           enabled: true,
           childCount: 799,
           children: []
+          jobs: {
+            jobID: { job details },
+            O: {
+              fullText: "Nada",
+              firstLine: "title of job",
+              paragraph: "lots of info about the job",
+              dateCreated: '20190911',
+            },
+          },        
         }
         */
       },
       jobStats: {
         jobCount: 0,
         filteredJobsCount: 0,
-      },
-      jobs: {
-        /*
-        jobID: { job details },
-        O: {
-          fullText: "Nada",
-          firstLine: "title of job",
-          paragraph: "lots of info about the job",
-          dateCreated: '20190911',
-        },
-        */
       },
       jobFilters: {
         /*

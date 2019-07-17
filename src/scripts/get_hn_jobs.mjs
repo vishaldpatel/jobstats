@@ -2,7 +2,7 @@ import JobDownloader from '../lib/JobDownloader.mjs';
 
 let jobSources = {
   // name : id
-  // '2019 - June': 20083795,
+  '2019 - June': 20083795,
   // '2019 - May': 19797594,
   // '2019 - April': 19543940,
   // '2019 - March': 19281834,

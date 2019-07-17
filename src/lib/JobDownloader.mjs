@@ -1,6 +1,7 @@
 import https from 'https';
-import JSZip from 'jszip';
+// import JSZip from 'jszip';
 import fs from 'fs';
+import LZString from 'lz-string';
 
 class JobDownloader {
   constructor() {
@@ -119,19 +120,36 @@ class JobDownloader {
     });
   }
 
+  compress(data) {
+    return new Promise((resolve) => {
+      let compressed = LZString.compressToUTF16(JSON.stringify(data));
+      resolve(compressed);
+    })
+  }
 
+  saveTo(path) {
+    this.compress(this.state).then(compressedData => {
+    fs.writeFile(path, compressedData, (err) => {
+      console.log(`${path} written.`);
+    })});
+  }
+
+  /*
   saveTo(path) {
     var zip = new JSZip();
     zip
     .file(path, JSON.stringify(this.state))
-    .generateNodeStream({type:'nodebuffer',streamFiles:true})
-    .pipe(fs.createWriteStream(`${path}.zip`))
-    .on('finish', function () {
-        // JSZip generates a readable stream with a "end" event,
-        // but is piped here in a writable stream which emits a "finish" event.
-        console.log(`${path}.zip written.`);
-    });
+    .generateAsync({type : "blob", compression: "DEFLATE"}).then(() => {
+      zip.generateNodeStream({type:'nodebuffer',streamFiles:true})
+      .pipe(fs.createWriteStream(`${path}.zip`))
+      .on('finish', function () {
+          // JSZip generates a readable stream with a "end" event,
+          // but is piped here in a writable stream which emits a "finish" event.
+          console.log(`${path}.zip written.`);
+      });
+    })
   }
+  */
 
   static basicData() {
     return ({

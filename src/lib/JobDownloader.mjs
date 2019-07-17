@@ -76,37 +76,28 @@ class JobDownloader {
   };
 
   getJobsFromIDs(jobIDs, callback) {
-    // We are going to throttle requests for each child.
-    let requestDelay = 200;
-    
-    // jobIDs.slice(0,10).forEach(jobID => {
-    jobIDs.forEach(jobID => {      
-      requestDelay += 100;
-      
-      setTimeout(() => {
-        this.getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
-        .then((jobData) => {
-          process.stdout.write(".");
-          // Not all jobIDs seem to retun good job data
-          this.setState((state) => {
-            state.jobIDCount = state.jobIDCount + 1;
-            return state;
-          }, () => {
-            if (typeof(jobData.text) !== 'undefined') {
-              this.cleanupAndAddJobData(jobData, () => {
-                if (this.state.jobIDCount >= jobIDs.length) {
-                  callback();
-                }
-              });
-            }            
-          });
-        })
-      }, requestDelay);
-    });
-
+    let jobID = jobIDs.pop();
+    if (typeof(jobID) !== 'undefined') {
+      this.getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
+      .then((jobData) => {
+        process.stdout.write(".");
+        // Not all jobIDs seem to retun good job data
+        this.setState((state) => {
+          state.jobIDCount = state.jobIDCount + 1;
+          return state;
+        }, () => {
+          if (typeof(jobData.text) !== 'undefined') {
+            this.cleanupAndAddJobData(jobData);
+          }
+          this.getJobsFromIDs(jobIDs, callback);
+        });
+      });
+    } else {
+      callback();
+    }
   }
 
-  cleanupAndAddJobData(jobData, callback) {
+  cleanupAndAddJobData(jobData) {
     let dateCreated = new Date(jobData.time*1000).toISOString().split("T")[0];
     let newJob = {
       id: jobData.id,
@@ -122,7 +113,6 @@ class JobDownloader {
       state.jobSources[jobData.parent].jobs[newJob.id] = newJob;
       return state;
     }, () => {
-      callback();
       // this.applyFiltersToJob(newJob);
       // this.reFilterJob(newJob);
     });

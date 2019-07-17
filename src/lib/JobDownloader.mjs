@@ -64,15 +64,16 @@ class JobDownloader {
     });
   }
 
-  getMissingJobs(callback) {
-    let state = this.state;
-    let newJobs = Object.keys(state.jobSources).map((key) => {
-      if (Object.keys(state.jobSources[key].jobs).length === 0) {
-        return state.jobSources[key].children;
-      }
-    }).flat()
-    
-    this.getJobsFromIDs(newJobs, callback);
+  getMissingJobs() {    
+    return new Promise((resolve, reject) => {
+      let state = this.state;
+      let newJobs = Object.keys(state.jobSources).map((key) => {
+        if (Object.keys(state.jobSources[key].jobs).length === 0) {
+          return state.jobSources[key].children;
+        }
+      }).flat()      
+      this.getJobsFromIDs(newJobs, () => resolve());
+    });
   };
 
   getJobsFromIDs(jobIDs, callback) {

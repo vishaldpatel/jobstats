@@ -1,5 +1,6 @@
 In order to run this, clone / download the repository. CD into the directory and run:
 > npm install
+
 > yarn start
 
 If your web browser doesn't already open, then go to http://localhost:3000/ and the app

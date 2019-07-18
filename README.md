@@ -6,6 +6,8 @@ If your web browser doesn't already open, then go to http://localhost:3000/ and 
 will begin to load. It takes some time initially, but then you should be able to filter
 with ease.
 
+--------------------------------------
+
 7/18/2019:
   The new direction is good.
   We're going to download all the job posts and store them as static json files on server.
@@ -13,6 +15,8 @@ with ease.
   as well as prepare any analytics.
 
   First load is a bit slow right now, which will probably become an issue soon enough.
+
+--------------------------------------
 
 7/16/2019:
 Problem:

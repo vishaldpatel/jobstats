@@ -1,3 +1,11 @@
+7/18/2019:
+  The new direction is good.
+  We're going to download all the job posts and store them as static json files on server.
+  The client will then load up the json files lazily and apply users' filters on them
+  as well as prepare any analytics.
+
+  First load is a bit slow right now, which will probably become an issue soon enough.
+
 7/16/2019:
 Problem:
   Execute a function after a function

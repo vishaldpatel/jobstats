@@ -1,3 +1,11 @@
+In order to run this, clone / download the repository. CD into the directory and run:
+> npm install
+> yarn start
+
+If your web browser doesn't already open, then go to http://localhost:3000/ and the app
+will begin to load. It takes some time initially, but then you should be able to filter
+with ease.
+
 7/18/2019:
   The new direction is good.
   We're going to download all the job posts and store them as static json files on server.

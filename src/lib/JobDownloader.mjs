@@ -114,9 +114,6 @@ class JobDownloader {
       state.jobStats.jobCount = state.jobStats.jobCount + 1;
       state.jobSources[jobData.parent].jobs[newJob.id] = newJob;
       return state;
-    }, () => {
-      // this.applyFiltersToJob(newJob);
-      // this.reFilterJob(newJob);
     });
   }
 
@@ -134,28 +131,11 @@ class JobDownloader {
     })});
   }
 
-  /*
-  saveTo(path) {
-    var zip = new JSZip();
-    zip
-    .file(path, JSON.stringify(this.state))
-    .generateAsync({type : "blob", compression: "DEFLATE"}).then(() => {
-      zip.generateNodeStream({type:'nodebuffer',streamFiles:true})
-      .pipe(fs.createWriteStream(`${path}.zip`))
-      .on('finish', function () {
-          // JSZip generates a readable stream with a "end" event,
-          // but is piped here in a writable stream which emits a "finish" event.
-          console.log(`${path}.zip written.`);
-      });
-    })
-  }
-  */
-
   static basicData() {
     return ({
       jobSources: {
         /*
-        jobSourceID: { jobSource details },
+        jobSourceID: { jobSource details, including all jobs },
         20083795: {
           name: "Ask HN: Who is hiring? (June 2019)",
           address: "https://news.ycombinator.com/item?id=20083795",
@@ -179,34 +159,7 @@ class JobDownloader {
         jobCount: 0,
         filteredJobsCount: 0,
       },
-      jobFilters: {
-        /*
-        filter: [array of matching job ids],
-        "SF|San Francisco|LA|Los Angeles": {
-          enabled: true,
-          jobIDs: [123,43,124,...],
-        },
-        "LA": { 
-          enabled: false,
-          jobIDs: [],
-        }
-        "React": { 
-          enabled: false,
-          jobIDs: [123, 45],
-        }
-        */
-       "SF|San Francisco|New York" : {
-         enabled: false,
-       },
-       "Crunchbase" : {
-         enabled: false,
-       }
-      },
-      enabledFilterKeys: [],
       enabledJobSourceIDs: [],
-      filteredJobs: {
-        // Basically jobs filtered by jobFilters
-      }
     });
   }  
 }

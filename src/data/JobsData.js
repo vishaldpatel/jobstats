@@ -1,4 +1,4 @@
-import getJSON from '../lib/getJSON.js';
+import GetJSON from '../lib/getJSON.js';
 
 class JobsData {
   constructor(client) {
@@ -9,78 +9,62 @@ class JobsData {
     return this.client.state;
   }
 
-  // TODO: Move the adding of job sources
-  // offline. Lazy load job sources as they
-  // are made online from previously scraped
-  // json files.
-  // jobSource[id] = {...}
-  // jobs[] = {...}
+  updateStatus(message) {
+    this.client.setState(state => { state.currentStatus = message; return state; });
+  }
 
-  addJobSource(url) {
+  processJobSourceJSON(jsonData) {
     return new Promise((resolve, reject) => {
-      let hnResult = url.match(/^(https:\/\/news\.ycombinator\.com\/item\?id=)([0-9]*)$/);
-      if (hnResult) {
-        let jobSourceID = hnResult[2];
-        getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobSourceID}.json`)
-        .then((listingPageJSON) => {
-          if (listingPageJSON.title.includes("Ask HN:")
-          && listingPageJSON.title.includes("hiring?")) {
-            this.client.setState((state) => {
-              jobSourceID = listingPageJSON.id; // Switch to the integer version
-              state.jobSources[jobSourceID] = {
-                name: listingPageJSON.title,
-                address: state.newJobSourceAddress,
-                childCount: listingPageJSON.descendants,
-                children: listingPageJSON.kids,
-                enabled: true,
-              }
-              if (!state.enabledJobSourceIDs.includes(jobSourceID)) {
-                state.enabledJobSourceIDs.push(jobSourceID);
-              }
-              return state;
-            }, () => {
-              resolve('Great Success!');
-            });
-          } else {
-            reject('Could not find "Ask HN" and "hiring?" in the title.');
-          }
-        })
+      if (typeof(jsonData) === 'object') {
+        this.client.setState((state) => {
+          state.jobSources = {
+            ...state.jobSources,
+            ...jsonData.jobSources,
+          };
+          state.jobs = {
+            ...state.jobs,
+            ...jsonData.jobSources[Object.keys(jsonData.jobSources)[0]].jobs
+          };
+          state.enabledJobSourceIDs.push(jsonData.enabledJobSourceIDs[0]);
+          return state;
+        }, () => {
+          console.log(this.state());
+          resolve(jsonData.enabledJobSourceIDs[0]);
+        });
       } else {
-        reject(`Could not correctly parse url: ${url}`);
+        reject('Could not find "Ask HN" and "hiring?" in the title.');
+      }      
+    });
+  }
+
+  loadJobSourcesFor(jobSourceNames) {
+    return new Promise((resolve, reject) => {
+      let jobSourceName = jobSourceNames.pop();
+      this.updateStatus(`Loading data for ${jobSourceName}...`);
+      if (typeof(jobSourceName) !== 'undefined') {
+        // Do the magic.
+        console.log('Starting the magic...');
+        GetJSON.getCompressedJSON(`../data/${jobSourceName}.json`)
+        .then((jsonData) => this.processJobSourceJSON(jsonData))
+        .then((jobSourceID) => {
+          this.applyFiltersForJobsIn(jobSourceID);
+        })
+        .then(() => this.updateStatus(`Done loading ${jobSourceName}`));
+      } else {
+        resolve('Done loading all jobs');
       }
     });
   }
 
-  getMissingJobs() {
-    let state = this.state();
-    let newJobs = Object.keys(state.jobSources).map((key) => {
-      return state.jobSources[key].children;
-    })
-    .flat()
-    .filter((jobKey) => !state.jobs[jobKey]);
-    
-    this.getJobsFromIDs(newJobs);
-  };
-
-  getJobsFromIDs(jobIDs) {
-    // We are going to throttle requests for each child.
-    let requestDelay = 200;
-    let count = 0;
-    let MAX_JOBS = 5;
-
-    jobIDs.forEach(jobID => {
-      requestDelay += 100;        
-      if (count < MAX_JOBS) {
-        setTimeout(() => {
-          getJSON(`https://hacker-news.firebaseio.com/v0/item/${jobID}.json`)
-          .then((jobData) => {
-            this.cleanupAndAddJobData(jobData);
-          })
-        }, requestDelay);
-      }
-      count++;
+  loadJobSources() {
+    console.log('okay..');
+    return new Promise((resolve, reject) => {
+      // Load job sources one at a time.
+      this.loadJobSourcesFor(this.state().jobSourceNames)
+      .then((message) => {
+        resolve(message);
+      })
     });
-
   }
 
   htmlDecode(input)
@@ -89,34 +73,34 @@ class JobsData {
     return doc.documentElement.textContent;
   }
 
-  cleanupAndAddJobData(jobData) {
-    let dateCreated = new Date(jobData.time*1000).toISOString().split("T")[0];
-    let newJob = {
-      id: jobData.id,
-      jobSourceID: jobData.parent,
-      fullText: this.htmlDecode(jobData.text),
-      firstLine: this.htmlDecode(jobData.text.split("<p>")[0]),
-      paragraph: this.htmlDecode(jobData.text.split("<p>").slice(1)),
-      dateCreated: dateCreated,
-      jobFilters: {},
-    }    
-    this.client.setState((state) => {    
-      state.jobStats.jobCount = state.jobStats.jobCount + 1;
-      state.jobs[newJob.id] = newJob;
-      return state;
-    }, () => { 
-      this.applyFiltersToJob(newJob);
-      this.reFilterJob(newJob);
+  applyFiltersForJobsIn(jobSourceID) {
+    let jobs = this.state().jobSources[jobSourceID].jobs;
+    Object.keys(jobs).forEach((jobKey) => {
+      let job = jobs[jobKey];
+      this.cleanupJobDataFor(job).then(() => {
+        this.applyFiltersToJob(job);
+        this.reFilterJob(job);
+      });
     });
   }
 
-  applyJobFilterToJob(jobFilter, job) {
-    if (job.fullText.match(jobFilter)) {
-      job.jobFilters[jobFilter] = true;
-    } else {
-      job.jobFilters[jobFilter] = false;
-    }
-    return job;
+  cleanupJobDataFor(job) {
+    return new Promise((resolve, reject) => {
+      job = {
+        ...job,
+        fullText: this.htmlDecode(job.fullText),
+        firstLine: this.htmlDecode(job.firstLine),
+        paragraph: this.htmlDecode(job.paragraph),
+        jobFilters: {},
+      }
+      this.client.setState((state) => {    
+        state.jobStats.jobCount = state.jobStats.jobCount + 1;
+        state.jobs[job.id] = job;
+        return state;
+      }, () => {
+        resolve()
+      });
+    });
   }
 
   applyFiltersToJob(job) {
@@ -129,6 +113,16 @@ class JobsData {
       return state;
     });
   }
+
+  applyJobFilterToJob(jobFilter, job) {
+    if (job.fullText.match(jobFilter)) {
+      job.jobFilters[jobFilter] = true;
+    } else {
+      job.jobFilters[jobFilter] = false;
+    }
+    return job;
+  }
+
 
   shouldJobFilterThrough(state, job) {
     let enabledFilterKeys = state.enabledFilterKeys;
@@ -219,6 +213,16 @@ class JobsData {
 
   static basicData() {
     return ({
+      jobSourceNames: [
+        /*
+        '2019 - January',
+        '2019 - February',
+        '2019 - March', 
+        '2019 - April', 
+        '2019 - May', 
+        */
+        '2019 - June' 
+      ],
       jobSources: {
         /*
         jobSourceID: { jobSource details },
@@ -265,7 +269,7 @@ class JobsData {
        "SF|San Francisco|New York" : {
          enabled: false,
        },
-       "Crunchbase" : {
+       "Remote|remote" : {
          enabled: false,
        }
       },

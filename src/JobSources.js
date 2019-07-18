@@ -9,16 +9,6 @@ class JobSources extends React.Component {
     }
   }
 
-  addJobSourceClicked() {
-    this.props.addJobSource(this.state.newJobSourceAddress);
-  }
-
-  inputChanged(inputName, value) {
-    this.setState({
-      [inputName]: value,
-    })
-  }
-
   jobSources() {
     return Object.keys(this.props.jobSources).map((key) => {
       // do stuff
@@ -38,10 +28,6 @@ class JobSources extends React.Component {
   render() {
     return(      
       <div className="JobSources">
-        <input type="text" 
-            onChange={(e) => this.inputChanged("newJobSourceAddress", e.target.value)} 
-            placeholder="http://news.ycombinator..." />
-        <button onClick={() => this.addJobSourceClicked()}>Add Source</button>
         <ul className="JobSources">
           {this.jobSources()}
         </ul>

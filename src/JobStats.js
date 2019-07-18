@@ -4,6 +4,7 @@ import JobSources from './JobSources.js';
 import JobResults from './JobResults.js';
 import JobGraphs from './JobGraphs.js'
 import JobsData from './data/JobsData.js';
+import StatusBar from './StatusBar.js';
 
 class JobStats extends React.Component {
   constructor(props) {
@@ -13,23 +14,22 @@ class JobStats extends React.Component {
   }
 
   componentDidMount() {
-    this.jobsData.addJobSource("https://news.ycombinator.com/item?id=20083795")
-    .then(() => {this.jobsData.getMissingJobs()});
-  }
-
-  handleAddSourceClick(url) {
-    this.jobsData.addJobSource(url)
-    .then(() => {this.jobsData.getMissingJobs()});    
+    console.log('Begin engines..');
+    this.jobsData.loadJobSources()
+    .then(() => this.setState(state => {
+      state.currentStatus = "Done loading.";
+      return state;
+    }));
   }
 
   render() {
     return (
       <div>
+        <StatusBar status={this.state.currentStatus} />
         <JobFilters jobFilters={this.state.jobFilters} 
                     addJobFilter={(filter) => { this.jobsData.addJobFilter(filter) }}
                     toggleJobFilter={(filter, enabled) => { this.jobsData.toggleFilter(filter, enabled); }} />
-        <JobSources jobSources={this.state.jobSources} 
-                    addJobSource={(url) => { this.handleAddSourceClick(url); }}
+        <JobSources jobSources={this.state.jobSources}
                     toggleJobSource={(jobSourceID, enabled) => { this.jobsData.toggleJobSource(jobSourceID, enabled); }} />
         <JobResults jobs={this.state.filteredJobs} jobStats={this.state.jobStats} />
         <JobGraphs jobStats={this.state.jobStats} />

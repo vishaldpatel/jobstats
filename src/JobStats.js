@@ -16,10 +16,13 @@ class JobStats extends React.Component {
   componentDidMount() {
     console.log('Begin engines..');
     this.jobsData.loadJobSources()
-    .then(() => this.setState(state => {
-      state.currentStatus = "Done loading.";
-      return state;
-    }));
+    .then((message) => {
+      console.log('should be done by now, yah?');
+      this.setState(state => {
+        state.currentStatus = message;
+        return state;
+      })
+    });
   }
 
   render() {

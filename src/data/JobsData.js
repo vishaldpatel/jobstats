@@ -13,6 +13,28 @@ class JobsData {
     this.client.setState(state => { state.currentStatus = message; return state; });
   }
 
+  loadJobSourcesFor(jobSourceNames) {
+    return new Promise((resolve, reject) => {
+      let jobSourceName = jobSourceNames.pop();      
+      if (typeof(jobSourceName) !== 'undefined') {
+        this.updateStatus(`Loading data for ${jobSourceName}...`);
+        GetJSON.getCompressedJSON(`../data/${jobSourceName}.json`)
+        .then((jsonData) => this.processJobSourceJSON(jsonData))
+        .then((jobSourceID) => {
+          this.updateStatus(`Filtering keys for ${jobSourceName}`);
+          return this.applyFiltersForSource(jobSourceID);
+        })
+        .then(() => {
+          this.updateStatus(`Done applying filters for: ${jobSourceName}`);
+          this.loadJobSourcesFor(jobSourceNames);
+        });
+      } else {
+        console.log('do i ever get here?');
+        resolve('Done loading all jobs');
+      }
+    });
+  }
+
   processJobSourceJSON(jsonData) {
     return new Promise((resolve, reject) => {
       if (typeof(jsonData) === 'object') {
@@ -28,36 +50,15 @@ class JobsData {
           state.enabledJobSourceIDs.push(jsonData.enabledJobSourceIDs[0]);
           return state;
         }, () => {
-          console.log(this.state());
           resolve(jsonData.enabledJobSourceIDs[0]);
         });
       } else {
         reject('Could not find "Ask HN" and "hiring?" in the title.');
       }      
     });
-  }
-
-  loadJobSourcesFor(jobSourceNames) {
-    return new Promise((resolve, reject) => {
-      let jobSourceName = jobSourceNames.pop();
-      this.updateStatus(`Loading data for ${jobSourceName}...`);
-      if (typeof(jobSourceName) !== 'undefined') {
-        // Do the magic.
-        console.log('Starting the magic...');
-        GetJSON.getCompressedJSON(`../data/${jobSourceName}.json`)
-        .then((jsonData) => this.processJobSourceJSON(jsonData))
-        .then((jobSourceID) => {
-          this.applyFiltersForJobsIn(jobSourceID);
-        })
-        .then(() => this.updateStatus(`Done loading ${jobSourceName}`));
-      } else {
-        resolve('Done loading all jobs');
-      }
-    });
-  }
+  }  
 
   loadJobSources() {
-    console.log('okay..');
     return new Promise((resolve, reject) => {
       // Load job sources one at a time.
       this.loadJobSourcesFor(this.state().jobSourceNames)
@@ -73,45 +74,54 @@ class JobsData {
     return doc.documentElement.textContent;
   }
 
-  applyFiltersForJobsIn(jobSourceID) {
-    let jobs = this.state().jobSources[jobSourceID].jobs;
-    Object.keys(jobs).forEach((jobKey) => {
-      let job = jobs[jobKey];
-      this.cleanupJobDataFor(job).then(() => {
-        this.applyFiltersToJob(job);
-        this.reFilterJob(job);
+  applyFiltersForSource(jobSourceID) {
+    let jobKeys = Object.keys(this.state().jobSources[jobSourceID].jobs);
+    let jobsLeft = jobKeys.length;
+    return new Promise((resolve, reject) => {
+      jobKeys.forEach((jobKey) => {
+        let job = this.state().jobs[jobKey];
+        if (typeof(job) === 'object') {
+          this.applyFiltersToJob(job)
+          .then(job => this.reFilterJob(job)) // This updates the state as well.
+          .then(() => {
+            jobsLeft--;
+            if (jobsLeft === 0) {
+              resolve();
+            }
+          });
+        }
       });
     });
   }
 
-  cleanupJobDataFor(job) {
+  reFilterJob(job) {
     return new Promise((resolve, reject) => {
-      job = {
-        ...job,
-        fullText: this.htmlDecode(job.fullText),
-        firstLine: this.htmlDecode(job.firstLine),
-        paragraph: this.htmlDecode(job.paragraph),
-        jobFilters: {},
+      let state = this.state();
+      if (this.shouldJobFilterThrough(state, job)) {
+        this.client.setState((state) => {
+          state.filteredJobs[job.id] = job;
+          return state;
+        }, () => {
+          resolve();
+        });      
+      } else {
+        resolve();
       }
-      this.client.setState((state) => {    
-        state.jobStats.jobCount = state.jobStats.jobCount + 1;
-        state.jobs[job.id] = job;
-        return state;
-      }, () => {
-        resolve()
-      });
     });
   }
 
   applyFiltersToJob(job) {
-    this.client.setState((state) => {
-      Object.keys(state.jobFilters).forEach((key) => {
-        job = this.applyJobFilterToJob(key, job)
+    let jobFilters = this.state().jobFilters;
+    let filtersLeft = Object.keys(jobFilters).length;
+    return new Promise((resolve, reject) => {
+      Object.keys(jobFilters).forEach((key) => {
+        job = this.applyJobFilterToJob(key, job);
+        filtersLeft--;
+        if (filtersLeft === 0) {          
+          resolve(job);
+        }
       });
-      
-      state.jobs[job.id] = job;
-      return state;
-    });
+    })
   }
 
   applyJobFilterToJob(jobFilter, job) {
@@ -131,16 +141,6 @@ class JobsData {
       (enabledJobSourceIDs.includes(job.jobSourceID)) && 
       (enabledFilterKeys.every(filterKey => job.jobFilters[filterKey]))
     )    
-  }
-
-  reFilterJob(job) {
-    let state = this.state();
-    if (this.shouldJobFilterThrough(state, job)) {
-      this.client.setState((state) => {
-        state.filteredJobs[job.id] = job;
-        return state;
-      });      
-    }
   }
 
   reFilterJobs() {
@@ -213,6 +213,7 @@ class JobsData {
 
   static basicData() {
     return ({
+      currentStatus: "",
       jobSourceNames: [
         /*
         '2019 - January',
@@ -243,6 +244,7 @@ class JobsData {
         /*
         jobID: { job details },
         O: {
+          id: 123,
           fullText: "Nada",
           firstLine: "title of job",
           paragraph: "lots of info about the job",

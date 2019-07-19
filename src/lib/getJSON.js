@@ -7,8 +7,6 @@ let GetJSON = {
       request.onreadystatechange = () => {
         if (request.readyState === XMLHttpRequest.DONE) {
           if (request.status === 200) {
-            // Great success!
-            console.log("whoa whoa");
             resolve(JSON.parse(LZString.decompressFromUTF16(request.responseText)));
           } else if (typeof reject !== undefined) {
             reject(`${request.status}: ${request.statusText}`);
@@ -26,9 +24,6 @@ let GetJSON = {
       request.onreadystatechange = () => {
         if (request.readyState === XMLHttpRequest.DONE) {
           if (request.status === 200) {
-            // Great success!
-            console.log("OKAY!");
-            console.log(request.responseText);
             resolve();
             // resolve(JSON.parse(request.responseText));
           } else if (typeof reject !== undefined) {

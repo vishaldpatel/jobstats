@@ -2,6 +2,19 @@ import React from 'react';
 import HtmlToReact from 'html-to-react';
 
 class JobResults extends React.Component {
+  constructor(props) {
+    super(props);
+    
+    this.state = {
+      expandedJobs: {}
+    };
+  }
+
+  toggleExpansion(item) {
+    let key = item.id.match(/^jobResult(\d*)$/)[1];
+    this.setState(state => state.expandedJobs[key] = !state.expandedJobs[key]);
+  }
+
   filteredJobs() {
     // run a map
     let parser = new HtmlToReact.Parser()
@@ -9,7 +22,16 @@ class JobResults extends React.Component {
       let job = this.props.jobs[jobKey];
       let firstLine = parser.parse(job.firstLine);
       // let firstLine = job.firstLine;
-      return <li key={`job${jobKey}`}>{job.dateCreated} | {firstLine}</li>;
+      if (this.state.expandedJobs[jobKey]) {
+        return (
+          <li key={`job${jobKey}`}>
+          <span id={`jobResult${jobKey}`} onClick={(e) => this.toggleExpansion(e.target)}>{job.dateCreated} | {firstLine}</span>
+          <p>{job.paragraph}</p>
+          </li>
+        );
+      } else {
+        return <li key={`job${jobKey}`} id={`jobResult${jobKey}`} onClick={(e) => this.toggleExpansion(e.target)}>{job.dateCreated} | {firstLine}</li>;
+      }
     });
   }
 

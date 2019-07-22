@@ -73,12 +73,6 @@ class JobsData {
     });
   }
 
-  htmlDecode(input)
-  {
-    var doc = new DOMParser().parseFromString(input, "text/html");
-    return doc.documentElement.textContent;
-  }
-
   applyFiltersForSource(jobSourceID) {
     let jobKeys = Object.keys(this.state().jobSources[jobSourceID].jobs);
     let jobsLeft = jobKeys.length;

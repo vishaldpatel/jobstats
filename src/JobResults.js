@@ -20,13 +20,15 @@ class JobResults extends React.Component {
     let parser = new HtmlToReact.Parser()
     return Object.keys(this.props.jobs).map((jobKey) => {
       let job = this.props.jobs[jobKey];
-      let firstLine = parser.parse(job.firstLine);
+      let firstLine = parser.parse(job.firstLine);      
       // let firstLine = job.firstLine;
+      
       if (this.state.expandedJobs[jobKey]) {
+        let paragraph = parser.parse(job.paragraph);
         return (
           <li key={`job${jobKey}`}>
           <span id={`jobResult${jobKey}`} onClick={(e) => this.toggleExpansion(e.target)}>{job.dateCreated} | {firstLine}</span>
-          <p>{job.paragraph}</p>
+          <p>{paragraph}</p>
           </li>
         );
       } else {
@@ -38,7 +40,7 @@ class JobResults extends React.Component {
   render() {
     return(
       <div className="JobResults">
-        <p>Jobs: {this.props.jobStats.filteredJobCount} filtered of {this.props.jobStats.jobCount} jobs found.</p>
+        <p>{this.props.jobStats.filteredJobCount} filtered of {this.props.jobStats.jobCount} jobs found.</p>
         <ul>
           {this.filteredJobs()}
         </ul>

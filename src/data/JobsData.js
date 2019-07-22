@@ -22,7 +22,10 @@ class JobsData {
         .then((jsonData) => this.processJobSourceJSON(jsonData))
         .then((jobSourceID) => {
           this.updateStatus(`Filtering keys for ${jobSourceName}`);
-          return this.applyFiltersForSource(jobSourceID);
+          this.applyFiltersForSource(jobSourceID);
+        })
+        .then(() => {
+          this.reFilterJobs();
         })
         .then(() => {
           this.updateStatus(`Done applying filters for: ${jobSourceName}`);
@@ -38,14 +41,16 @@ class JobsData {
   processJobSourceJSON(jsonData) {
     return new Promise((resolve, reject) => {
       if (typeof(jsonData) === 'object') {
+        let jobs = jsonData.jobSources[Object.keys(jsonData.jobSources)[0]].jobs;
         this.client.setState((state) => {
+          state.jobStats.jobCount = Object.keys(jobs).length;
           state.jobSources = {
             ...state.jobSources,
             ...jsonData.jobSources,
           };
           state.jobs = {
             ...state.jobs,
-            ...jsonData.jobSources[Object.keys(jsonData.jobSources)[0]].jobs
+            ...jobs
           };
           state.enabledJobSourceIDs.push(jsonData.enabledJobSourceIDs[0]);
           return state;
@@ -82,7 +87,6 @@ class JobsData {
         let job = this.state().jobs[jobKey];
         if (typeof(job) === 'object') {
           this.applyFiltersToJob(job)
-          .then(job => this.reFilterJob(job)) // This updates the state as well.
           .then(() => {
             jobsLeft--;
             if (jobsLeft === 0) {
@@ -91,22 +95,6 @@ class JobsData {
           });
         }
       });
-    });
-  }
-
-  reFilterJob(job) {
-    return new Promise((resolve, reject) => {
-      let state = this.state();
-      if (this.shouldJobFilterThrough(state, job)) {
-        this.client.setState((state) => {
-          state.filteredJobs[job.id] = job;
-          return state;
-        }, () => {
-          resolve();
-        });      
-      } else {
-        resolve();
-      }
     });
   }
 
@@ -144,17 +132,22 @@ class JobsData {
   }
 
   reFilterJobs() {
-    let state = this.state();
-    let filteredJobs = {};
-
-    Object.keys(state.jobs)
-    .filter((jobKey) => this.shouldJobFilterThrough(state, state.jobs[jobKey]))
-    .forEach(jobKey => {
-      filteredJobs[jobKey] = state.jobs[jobKey];
-    });
-    this.client.setState((state) => {
-      state.filteredJobs = filteredJobs;
-      return state;
+    return new Promise(resolve => {
+      let state = this.state();
+      let filteredJobs = {};
+  
+      Object.keys(state.jobs)
+      .filter((jobKey) => this.shouldJobFilterThrough(state, state.jobs[jobKey]))
+      .forEach(jobKey => {
+        filteredJobs[jobKey] = state.jobs[jobKey];
+      });
+      this.client.setState((state) => {
+        state.jobStats.filteredJobCount = Object.keys(filteredJobs).length;
+        state.filteredJobs = filteredJobs;
+        return state;
+      }, () => {
+        resolve();
+      });
     });
   }
 
@@ -238,7 +231,7 @@ class JobsData {
       },
       jobStats: {
         jobCount: 0,
-        filteredJobsCount: 0,
+        filteredJobCount: 0,
       },
       jobs: {
         /*

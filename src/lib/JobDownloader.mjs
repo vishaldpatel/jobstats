@@ -8,13 +8,11 @@ class JobDownloader {
     this.state = JobDownloader.basicData();
   }
 
-  getState() {
-    return this.state;
-  }
-
   setState(stateSetter, callback) {
     this.state = stateSetter(this.state);
-    callback();
+    if (callback) {
+      callback();
+    }
   }
 
   getJSON(url) {
@@ -111,7 +109,7 @@ class JobDownloader {
       jobFilters: {},
     }
     this.setState((state) => {
-      state.jobStats.jobCount = state.jobStats.jobCount + 1;
+      // state.jobStats.jobCount = state.jobStats.jobCount + 1;
       state.jobSources[jobData.parent].jobs[newJob.id] = newJob;
       return state;
     });
@@ -155,10 +153,6 @@ class JobDownloader {
         */
       },
       jobIDCount: 0,
-      jobStats: {
-        jobCount: 0,
-        filteredJobsCount: 0,
-      },
       enabledJobSourceIDs: [],
     });
   }  

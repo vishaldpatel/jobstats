@@ -40,7 +40,7 @@ class JobResults extends React.Component {
   render() {
     return(
       <div className="JobResults">
-        <p>{this.props.jobStats.filteredJobCount} filtered of {this.props.jobStats.jobCount} jobs found.</p>
+        <p>{this.props.jobStats.jobCounts.filters.total} filtered of {this.props.jobStats.jobCounts.total} jobs found.</p>
         <ul>
           {this.filteredJobs()}
         </ul>

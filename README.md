@@ -9,6 +9,19 @@ with ease.
 
 --------------------------------------
 
+7/22/2019:
+
+  Okay, so now we have enough to make our data be more visual using D3.js.
+  What'd be great on the current dataset:
+  - Ven diagram:
+    - See all jobs.
+    - See each filter.
+    - See the intersection of filters.
+    - Be able to click on different parts to drill down on the data (check / uncheck filters).
+    - Checking / unchecking the checklist will transition the ven diagram to reflect the new state.
+
+--------------------------------------
+
 7/18/2019:
   The new direction is good.
   We're going to download all the job posts and store them as static json files on server.

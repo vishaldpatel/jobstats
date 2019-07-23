@@ -41,9 +41,14 @@ class JobsData {
   processJobSourceJSON(jsonData) {
     return new Promise((resolve, reject) => {
       if (typeof(jsonData) === 'object') {
+        let jobSourceID = jsonData.enabledJobSourceIDs[0];
         let jobs = jsonData.jobSources[Object.keys(jsonData.jobSources)[0]].jobs;
         this.client.setState((state) => {
-          state.jobStats.jobCount = Object.keys(jobs).length;
+          state.jobStats.jobCounts.total += Object.keys(jobs).length;
+          state.jobStats.jobCounts.jobSources[jobSourceID] = {
+            total: Object.keys(jobs).length,
+            filters: {}
+          };
           state.jobSources = {
             ...state.jobSources,
             ...jsonData.jobSources,
@@ -52,7 +57,7 @@ class JobsData {
             ...state.jobs,
             ...jobs
           };
-          state.enabledJobSourceIDs.push(jsonData.enabledJobSourceIDs[0]);
+          state.enabledJobSourceIDs.push(jobSourceID);
           return state;
         }, () => {
           resolve(jsonData.enabledJobSourceIDs[0]);
@@ -125,18 +130,42 @@ class JobsData {
     )    
   }
 
+  getResetJobCounts() {
+    let state = this.state();
+    let enabledJobSourceIDs = state.enabledJobSourceIDs;
+    let enabledFiltersKey = state.enabledFilterKeys.join('::');
+    let jobCounts = state.jobStats.jobCounts;
+    jobCounts.filters = {
+      [enabledFiltersKey]: 0
+    };
+    enabledJobSourceIDs.forEach(jobSourceID => {      
+      jobCounts.jobSources[jobSourceID].filters[enabledFiltersKey] = 0
+    });
+
+    return jobCounts;
+  }
+
   reFilterJobs() {
     return new Promise(resolve => {
       let state = this.state();
       let filteredJobs = {};
+      let jobCounts = this.getResetJobCounts();
+      let enabledFiltersKey = state.enabledFilterKeys.join('::');
   
       Object.keys(state.jobs)
       .filter((jobKey) => this.shouldJobFilterThrough(state, state.jobs[jobKey]))
       .forEach(jobKey => {
-        filteredJobs[jobKey] = state.jobs[jobKey];
+        let job = state.jobs[jobKey];
+        filteredJobs[jobKey] = job;
+        jobCounts.filters[enabledFiltersKey] += 1;
+        jobCounts.jobSources[job.jobSourceID].filters[enabledFiltersKey] += 1;
       });
       this.client.setState((state) => {
-        state.jobStats.filteredJobCount = Object.keys(filteredJobs).length;
+        state.jobStats.jobCounts = {
+          ...state.jobStats.jobCounts,
+          ...jobCounts,
+        }
+        state.jobStats.jobCounts.filters.total = Object.keys(filteredJobs).length;
         state.filteredJobs = filteredJobs;
         return state;
       }, () => {
@@ -202,13 +231,11 @@ class JobsData {
     return ({
       currentStatus: "",
       jobSourceNames: [
-        /*
         '2019 - January',
         '2019 - February',
         '2019 - March', 
         '2019 - April', 
         '2019 - May', 
-        */
         '2019 - June' 
       ],
       jobSources: {
@@ -224,8 +251,27 @@ class JobsData {
         */
       },
       jobStats: {
-        jobCount: 0,
-        filteredJobCount: 0,
+        jobCounts: {
+          total: 0,
+          filters: {
+            filteredCount: 0,
+            /*
+            'Filter1': 0,
+            'Filter1::Filter2': 0
+            */
+          },
+          jobSources: {
+            /* 
+            'jobSourceID' : {
+              total: 24,
+              filters: {
+                'FilterName': 0,
+                'Filter1::Filter2': 0
+              }
+            }
+            */
+          }
+        }
       },
       jobs: {
         /*

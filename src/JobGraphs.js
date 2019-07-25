@@ -43,10 +43,6 @@ class JobGraphs extends React.Component {
   }
 
   componentDidMount() {
-    // D3's enter state
-    // Data has just been added to the graph
-    // update the graphs.
-
     let width = '900px';
     let height = '250px;';
     var el = this.getDOMNode();

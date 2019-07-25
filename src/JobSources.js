@@ -13,13 +13,14 @@ class JobSources extends React.Component {
     return Object.keys(this.props.jobSources).map((key) => {
       // do stuff
       let jobSource = this.props.jobSources[key];
+      let stats = this.props.jobStats.jobCounts.jobSources[key];
       return (
         <li key={key} className="JobSourceItem">
           <input type="checkbox" 
             defaultChecked={jobSource.enabled} 
             value={key}
             onClick={(event) => { this.props.toggleJobSource(event.target.value, event.target.checked); }} />
-          {jobSource.name}
+          {jobSource.name} -- {stats.total} jobs Found. {stats.filtered} filtered.
         </li>
       );
     });

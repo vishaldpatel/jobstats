@@ -138,7 +138,8 @@ class JobsData {
     jobCounts.filters = {
       [enabledFiltersKey]: 0
     };
-    enabledJobSourceIDs.forEach(jobSourceID => {      
+    enabledJobSourceIDs.forEach(jobSourceID => {
+      jobCounts.jobSources[jobSourceID].filtered = 0
       jobCounts.jobSources[jobSourceID].filters[enabledFiltersKey] = 0
     });
 
@@ -159,6 +160,7 @@ class JobsData {
         filteredJobs[jobKey] = job;
         jobCounts.filters[enabledFiltersKey] += 1;
         jobCounts.jobSources[job.jobSourceID].filters[enabledFiltersKey] += 1;
+        jobCounts.jobSources[job.jobSourceID].filtered += 1;
       });
       this.client.setState((state) => {
         state.jobStats.jobCounts = {
@@ -254,7 +256,6 @@ class JobsData {
         jobCounts: {
           total: 0,
           filters: {
-            filteredCount: 0,
             /*
             'Filter1': 0,
             'Filter1::Filter2': 0
@@ -264,6 +265,7 @@ class JobsData {
             /* 
             'jobSourceID' : {
               total: 24,
+              filtered: 4,
               filters: {
                 'FilterName': 0,
                 'Filter1::Filter2': 0

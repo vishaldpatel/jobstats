@@ -7,6 +7,13 @@ If your web browser doesn't already open, then go to http://localhost:3000/ and 
 will begin to load. It takes some time initially, but then you should be able to filter
 with ease.
 
+7/24/2019:
+- We now have enough data to start drawing stuff.
+
+Next step for data:
+- Jobs from multiple years.
+- We will want to lazyload this based on demand.
+
 --------------------------------------
 
 7/22/2019:

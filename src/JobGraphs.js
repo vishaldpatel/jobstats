@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-// import {translate} from 'd3';
-import {select} from 'd3-selection';
+import {select, transition} from 'd3';
 // import {scaleLinear} from 'd3-scale';
 
 class JobGraphs extends React.Component {
@@ -21,11 +20,6 @@ class JobGraphs extends React.Component {
   }
 
   draw(el, filteredCounts) {
-    // Get the current state
-    // Get the DOM node.
-    // Get the scales
-    // For animations, get the previous state.
-
     select(el)
     .select('.d3-bars')
     .selectAll('rect')
@@ -37,13 +31,24 @@ class JobGraphs extends React.Component {
     .attr('transform', (d,i) => `translate(0, ${i*15})`);
   }
 
+  updateDrawing(el, filteredCounts) {
+    select(el)
+    .select('.d3-bars')
+    .selectAll('rect')
+    .data(filteredCounts)
+    .transition()
+    .attr('width', d => d)
+    .attr('height', 10)
+    .attr('transform', (d,i) => `translate(0, ${i*15})`);
+  }
+
   componentDidMount() {
     // D3's enter state
     // Data has just been added to the graph
     // update the graphs.
 
     let width = '900px';
-    let height = '150px;';
+    let height = '250px;';
     var el = this.getDOMNode();
 
     select(el)
@@ -54,7 +59,7 @@ class JobGraphs extends React.Component {
     .append('g')
     .attr('class', 'd3-bars');
 
-    this.draw(el, []);
+    this.draw(el, [1,1,1,1,1,1]);
 
   }
 
@@ -68,7 +73,7 @@ class JobGraphs extends React.Component {
     let filteredCounts = Object.keys(jobSourceCounts).map(key => jobSourceCounts[key].filtered);    
     if ((filteredCounts.length > 5) && (typeof(filteredCounts[0]) !== 'undefined')) {
       //console.log('Job Counts:', filteredCounts[0], filteredCounts);
-      this.draw(el, filteredCounts);
+      this.updateDrawing(el, filteredCounts);
     }
   }
 

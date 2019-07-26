@@ -13,32 +13,26 @@ class JobsData {
     this.client.setState(state => { state.currentStatus = message; return state; });
   }
 
-  loadJobSourcesFor(jobSourceNames) {
-    return new Promise((resolve, reject) => {
-      let jobSourceName = jobSourceNames.pop();      
-      if (typeof(jobSourceName) !== 'undefined') {
-        this.updateStatus(`Loading data for ${jobSourceName}...`);
-        GetJSON.getCompressedJSON(`../data/${jobSourceName}.json`)
-        .then((jsonData) => this.processJobSourceJSON(jsonData))
-        .then((jobSourceID) => {
-          this.updateStatus(`Filtering keys for ${jobSourceName}`);
-          this.applyFiltersForSource(jobSourceID);
-        })
-        .then(() => {
-          this.reFilterJobs();
-        })
-        .then(() => {
-          this.updateStatus(`Done applying filters for: ${jobSourceName}`);
-          this.loadJobSourcesFor(jobSourceNames);
-        });
-      } else {
-        console.log('do i ever get here?');
-        resolve('Done loading all jobs');
-      }
+  loadJobSourcesFor(jobSourceName, toggledOn) {
+    return new Promise((resolve, reject) => {      
+      this.updateStatus(`Loading data for ${jobSourceName}...`);
+      GetJSON.getCompressedJSON(`../data/${jobSourceName}.json`)
+      .then((jsonData) => this.processJobSourceJSON(jsonData, toggledOn))
+      .then((jobSourceID) => {
+        this.updateStatus(`Filtering keys for ${jobSourceName}`);
+        this.applyFiltersForSource(jobSourceID);
+      })
+      .then(() => {
+        this.reFilterJobs();
+      })
+      .then(() => {
+        this.updateStatus(`Done applying filters for: ${jobSourceName}`);
+        resolve();
+      });
     });
   }
 
-  processJobSourceJSON(jsonData) {
+  processJobSourceJSON(jsonData, toggledOn) {
     return new Promise((resolve, reject) => {
       if (typeof(jsonData) === 'object') {
         let jobSourceID = jsonData.enabledJobSourceIDs[0];
@@ -57,7 +51,11 @@ class JobsData {
             ...state.jobs,
             ...jobs
           };
-          state.enabledJobSourceIDs.push(jobSourceID);
+          if (toggledOn) {
+            state.enabledJobSourceIDs.push(jobSourceID);
+          } else {
+            state.jobSources[jobSourceID].enabled = false;
+          }
           return state;
         }, () => {
           resolve(jsonData.enabledJobSourceIDs[0]);
@@ -70,11 +68,19 @@ class JobsData {
 
   loadJobSources() {
     return new Promise((resolve, reject) => {
-      // Load job sources one at a time.
-      this.loadJobSourcesFor(this.state().jobSourceNames)
-      .then((message) => {
-        resolve(message);
-      })
+      let state = this.state();
+      let name = Object.keys(state.jobSourceNames).pop();
+      let toggledOn = state.jobSourceNames[name];
+      if (name) {
+        delete state.jobSourceNames[name];
+        this.client.setState(state, () => {
+          this.loadJobSourcesFor(name, toggledOn).then(() => {
+            this.loadJobSources();
+          });
+        });
+      } else {
+        resolve('Done loading all jobs');
+      }
     });
   }
 
@@ -225,6 +231,7 @@ class JobsData {
         state.enabledJobSourceIDs.splice(enabledJobSourceIDIndex, 1);
       }
       state.jobSources[jobSourceID].enabled = enabled;
+      state.jobStats.jobCounts.jobSources[jobSourceID].enabled = enabled;
       return state;
     }, () => { this.reFilterJobs() });
   }
@@ -232,14 +239,17 @@ class JobsData {
   static basicData() {
     return ({
       currentStatus: "",
-      jobSourceNames: [
-        '2019 - January',
-        '2019 - February',
-        '2019 - March', 
-        '2019 - April', 
-        '2019 - May', 
-        '2019 - June' 
-      ],
+      jobSourceNames: {
+        /*
+        'Source Name' : true if toggled on by default
+        */
+        '2019 - January' : false,
+        '2019 - February' : false,
+        '2019 - March' : false, 
+        '2019 - April' : false, 
+        '2019 - May' : false, 
+        '2019 - June' : true,
+      },
       jobSources: {
         /*
         jobSourceID: { jobSource details },

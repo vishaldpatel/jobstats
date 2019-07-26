@@ -31,7 +31,11 @@ class JobGraphs extends React.Component {
     .attr('transform', (d,i) => `translate(0, ${i*15})`);
   }
 
-  updateDrawing(el, filteredCounts) {
+  updateDrawing(el, prevFilteredCounts, filteredCounts) {
+    // Loop through each source
+    // select rectangle with appropriate source
+    // if it exists, then modify
+    // if it does not exist then
     select(el)
     .select('.d3-bars')
     .selectAll('rect')
@@ -59,17 +63,18 @@ class JobGraphs extends React.Component {
 
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     // D3's update state.
     // Data has been updated.
     // Update the graphs.
     let el = this.getDOMNode();
     let jobStats = this.props.jobStats;
     let jobSourceCounts = jobStats.jobCounts.jobSources;
-    let filteredCounts = Object.keys(jobSourceCounts).map(key => jobSourceCounts[key].filtered);    
+    let prevJobSourceCounts = prevProps.jobStats.jobCounts.jobSources;
+    let filteredCounts = Object.keys(jobSourceCounts).map(key => jobSourceCounts[key].filtered);
+    let previousFilteredCounts = Object.keys(prevJobSourceCounts).map(key => prevJobSourceCounts[key].filtered);
     if ((filteredCounts.length > 5) && (typeof(filteredCounts[0]) !== 'undefined')) {
-      //console.log('Job Counts:', filteredCounts[0], filteredCounts);
-      this.updateDrawing(el, filteredCounts);
+      this.updateDrawing(el, previousFilteredCounts,filteredCounts);
     }
   }
 

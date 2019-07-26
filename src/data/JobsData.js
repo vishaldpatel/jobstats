@@ -37,29 +37,28 @@ class JobsData {
       if (typeof(jsonData) === 'object') {
         let jobSourceID = jsonData.enabledJobSourceIDs[0];
         let jobs = jsonData.jobSources[Object.keys(jsonData.jobSources)[0]].jobs;
-        this.client.setState((state) => {
-          state.jobStats.jobCounts.total += Object.keys(jobs).length;
-          state.jobStats.jobCounts.jobSources[jobSourceID] = {
-            total: Object.keys(jobs).length,
-            filters: {}
-          };
-          state.jobSources = {
-            ...state.jobSources,
-            ...jsonData.jobSources,
-          };
-          state.jobs = {
-            ...state.jobs,
-            ...jobs
-          };
-          if (toggledOn) {
-            state.enabledJobSourceIDs.push(jobSourceID);
-          } else {
-            state.jobSources[jobSourceID].enabled = false;
-          }
-          return state;
-        }, () => {
-          resolve(jsonData.enabledJobSourceIDs[0]);
-        });
+
+        let state = this.state();        
+        state.jobStats.jobCounts.total += Object.keys(jobs).length;
+        state.jobStats.jobCounts.jobSources[jobSourceID] = {
+          total: Object.keys(jobs).length,
+          filters: {}
+        };
+        state.jobSources = {
+          ...state.jobSources,
+          ...jsonData.jobSources,
+        };
+        state.jobs = {
+          ...state.jobs,
+          ...jobs
+        };
+        if (toggledOn) {
+          state.enabledJobSourceIDs.push(jobSourceID);
+        } else {
+          state.jobSources[jobSourceID].enabled = false;
+        }
+
+        this.client.setState(state, () => resolve(jsonData.enabledJobSourceIDs[0]));
       } else {
         reject('Could not find "Ask HN" and "hiring?" in the title.');
       }      
@@ -74,7 +73,8 @@ class JobsData {
       if (name) {
         delete state.jobSourceNames[name];
         this.client.setState(state, () => {
-          this.loadJobSourcesFor(name, toggledOn).then(() => {
+          this.loadJobSourcesFor(name, toggledOn)
+          .then(() => {
             this.loadJobSources();
           });
         });
@@ -168,72 +168,60 @@ class JobsData {
         jobCounts.jobSources[job.jobSourceID].filters[enabledFiltersKey] += 1;
         jobCounts.jobSources[job.jobSourceID].filtered += 1;
       });
-      this.client.setState((state) => {
-        state.jobStats.jobCounts = {
-          ...state.jobStats.jobCounts,
-          ...jobCounts,
-        }
-        state.jobStats.jobCounts.filters.total = Object.keys(filteredJobs).length;
-        state.filteredJobs = filteredJobs;
-        return state;
-      }, () => {
-        resolve();
-      });
+      
+      state.jobStats.jobCounts = {
+        ...state.jobStats.jobCounts,
+        ...jobCounts,
+      }
+      state.jobStats.jobCounts.filters.total = Object.keys(filteredJobs).length;
+      state.filteredJobs = filteredJobs;
+      this.client.setState(state, () => resolve());
     });
   }
 
   addFilterToAllJobs(filter) {
-    this.client.setState(state => {
-      Object.keys(state.jobs).forEach((jobKey) => {
-        state.jobs[jobKey] = this.applyJobFilterToJob(filter, state.jobs[jobKey]);
-      });
-      return state;
+    let state = this.state();
+    Object.keys(state.jobs).forEach((jobKey) => {
+      state.jobs[jobKey] = this.applyJobFilterToJob(filter, state.jobs[jobKey]);
     });
+    this.client.setState(state);
   }
 
   addJobFilter(filter) {
-    this.client.setState((state) => {
-      state.jobFilters[filter] = {
-        enabled: false
-      }
-      if (!state.enabledFilterKeys.includes(filter)) {
-        state.enabledFilterKeys.push(filter);
-      }
-      return state;
-    }, () => {this.addFilterToAllJobs(filter)});
+    let state = this.state();
+    state.jobFilters[filter] = {
+      enabled: false
+    }
+    if (!state.enabledFilterKeys.includes(filter)) {
+      state.enabledFilterKeys.push(filter);
+    }
+    this.client.setState(state,() => this.addFilterToAllJobs(filter));
   }
 
   toggleFilter(filter, enabled) {
-    this.client.setState((state) => {
-      let enabledFilterKeyIndex = state.enabledFilterKeys.indexOf(filter);
-      if ((enabled) && (enabledFilterKeyIndex === -1)) {
-        state.enabledFilterKeys.push(filter);
-      } else if ((!enabled) && (enabledFilterKeyIndex >= 0)) {
-        state.enabledFilterKeys.splice(enabledFilterKeyIndex, 1);
-      }
-      state.jobFilters[filter].enabled = enabled;      
-      return state;
-    }, () => { this.reFilterJobs() });
+    let state = this.state();
+    let enabledFilterKeyIndex = state.enabledFilterKeys.indexOf(filter);
+    if ((enabled) && (enabledFilterKeyIndex === -1)) {
+      state.enabledFilterKeys.push(filter);
+    } else if ((!enabled) && (enabledFilterKeyIndex >= 0)) {
+      state.enabledFilterKeys.splice(enabledFilterKeyIndex, 1);
+    }
+    state.jobFilters[filter].enabled = enabled;      
+    this.client.setState(state,() => this.reFilterJobs());
   }
 
   toggleJobSource(jobSourceID, enabled) {
-    // TODO: Check if jobs from that source have been loaded
-    // if not, then load the jobs first.
-    // If jobs have not been received
-    // then, get the jobs and apply filters them.
-
     jobSourceID = parseInt(jobSourceID);
-    this.client.setState((state) => {
-      let enabledJobSourceIDIndex = state.enabledJobSourceIDs.indexOf(jobSourceID);
-      if ((enabled) && (enabledJobSourceIDIndex === -1)) {
-        state.enabledJobSourceIDs.push(jobSourceID);
-      } else if ((!enabled) && (enabledJobSourceIDIndex >= 0)) {
-        state.enabledJobSourceIDs.splice(enabledJobSourceIDIndex, 1);
-      }
-      state.jobSources[jobSourceID].enabled = enabled;
-      state.jobStats.jobCounts.jobSources[jobSourceID].enabled = enabled;
-      return state;
-    }, () => { this.reFilterJobs() });
+    let state = this.state();
+    let enabledJobSourceIDIndex = state.enabledJobSourceIDs.indexOf(jobSourceID);
+    if ((enabled) && (enabledJobSourceIDIndex === -1)) {
+      state.enabledJobSourceIDs.push(jobSourceID);
+    } else if ((!enabled) && (enabledJobSourceIDIndex >= 0)) {
+      state.enabledJobSourceIDs.splice(enabledJobSourceIDIndex, 1);
+    }
+    state.jobSources[jobSourceID].enabled = enabled;
+    state.jobStats.jobCounts.jobSources[jobSourceID].enabled = enabled;
+    this.client.setState(state,() => this.reFilterJobs());
   }
 
   static basicData() {

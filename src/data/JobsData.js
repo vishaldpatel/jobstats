@@ -14,7 +14,7 @@ class JobsData {
   }
 
   loadJobSourcesFor(jobSourceName, toggledOn) {
-    return new Promise((resolve, reject) => {      
+    return new Promise((resolve, reject) => {
       this.updateStatus(`Loading data for ${jobSourceName}...`);
       GetJSON.getCompressedJSON(`../data/${jobSourceName}.json`)
       .then((jsonData) => this.processJobSourceJSON(jsonData, toggledOn))

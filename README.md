@@ -7,6 +7,17 @@ If your web browser doesn't already open, then go to http://localhost:3000/ and 
 will begin to load. It takes some time initially, but then you should be able to filter
 with ease.
 
+--------------------------------------
+
+7/30/2019:
+
+- Made the graphs work yesterday but it also gave me some ideas
+  on how to make the whole thing more useful - Venn diagrams, while pretty
+  are probably not that useful. Also, I'll just create a "todo.md" file
+  to track all todos / future featuers.
+
+--------------------------------------
+
 7/24/2019:
 - We now have enough data to start drawing stuff.
 
@@ -20,7 +31,7 @@ Next step for data:
 
   Okay, so now we have enough to make our data be more visual using D3.js.
   What'd be great on the current dataset:
-  - Ven diagram:
+  - Venn diagram:
     - See all jobs.
     - See each filter.
     - See the intersection of filters.

@@ -19,31 +19,35 @@ class JobGraphs extends React.Component {
     // for our visualization.
   }
 
-  draw(el, filteredCounts) {
+  scaled(num) {
+    if (typeof(num) === 'undefined') {
+      return 0;
+    } else {
+      return Math.log(num)*15;
+    }
+  }
+
+  draw(el, filteredCounts) {    
     select(el)
     .select('.d3-bars')
     .selectAll('rect')
     .data(filteredCounts)
     .enter()
     .append('rect')
-    .attr('width', d => d)
-    .attr('height', 10)
-    .attr('transform', (d,i) => `translate(0, ${i*15})`);
+    .attr('height', d => this.scaled(d))
+    .attr('width', 10)
+    .attr('transform', (d,i) => `translate(${i*15}, ${145 - this.scaled(d)})`);
   }
 
   updateDrawing(el, prevFilteredCounts, filteredCounts) {
-    // Loop through each source
-    // select rectangle with appropriate source
-    // if it exists, then modify
-    // if it does not exist then
     select(el)
     .select('.d3-bars')
     .selectAll('rect')
     .data(filteredCounts)
     .transition()
-    .attr('width', d => d)
-    .attr('height', 10)
-    .attr('transform', (d,i) => `translate(0, ${i*15})`);
+    .attr('height', d => this.scaled(d))
+    .attr('width', 10)
+    .attr('transform', (d,i) => `translate(${i*15}, ${145 - this.scaled(d)})`);
   }
 
   componentDidMount() {
@@ -64,16 +68,19 @@ class JobGraphs extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    // D3's update state.
-    // Data has been updated.
-    // Update the graphs.
+    // We need to know
+    // the filter name, associated color
+    // and its amount in order
+    // to appropriately map data
+    // to local state.
+
     let el = this.getDOMNode();
     let jobStats = this.props.jobStats;
     let jobSourceCounts = jobStats.jobCounts.jobSources;
     let prevJobSourceCounts = prevProps.jobStats.jobCounts.jobSources;
     let filteredCounts = Object.keys(jobSourceCounts).map(key => jobSourceCounts[key].filtered);
     let previousFilteredCounts = Object.keys(prevJobSourceCounts).map(key => prevJobSourceCounts[key].filtered);
-    if ((filteredCounts.length > 5) && (typeof(filteredCounts[0]) !== 'undefined')) {
+    if (filteredCounts.length > 5) {
       this.updateDrawing(el, previousFilteredCounts,filteredCounts);
     }
   }

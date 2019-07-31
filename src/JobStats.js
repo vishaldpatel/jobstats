@@ -28,15 +28,23 @@ class JobStats extends React.Component {
   render() {
     return (
       <div>
-        <StatusBar status={this.state.currentStatus} />
-        <JobGraphs jobStats={this.state.jobStats} />
-        <JobFilters jobFilters={this.state.jobFilters}
-                    addJobFilter={(filter) => { this.jobsData.addJobFilter(filter) }}
-                    toggleJobFilter={(filter, enabled) => { this.jobsData.toggleFilter(filter, enabled); }} />
-        <JobSources jobSources={this.state.jobSources}
-                    jobStats={this.state.jobStats}        
-                    toggleJobSource={(jobSourceID, enabled) => { this.jobsData.toggleJobSource(jobSourceID, enabled); }} />
-        <JobResults jobs={this.state.filteredJobs} jobStats={this.state.jobStats} />
+        <div className="row">
+          <StatusBar status={this.state.currentStatus} />
+        </div>
+        <div className="row">
+          <div className="col-3">
+            <JobSources jobSources={this.state.jobSources}
+                        jobStats={this.state.jobStats}        
+                        toggleJobSource={(jobSourceID, enabled) => { this.jobsData.toggleJobSource(jobSourceID, enabled); }} />
+            <JobFilters jobFilters={this.state.jobFilters}
+                        addJobFilter={(filter) => { this.jobsData.addJobFilter(filter) }}
+                        toggleJobFilter={(filter, enabled) => { this.jobsData.toggleFilter(filter, enabled); }} />                        
+          </div>
+          <div className="col-9">
+            <JobGraphs jobStats={this.state.jobStats} />                      
+            <JobResults jobs={this.state.filteredJobs} jobStats={this.state.jobStats} />
+          </div>
+        </div>
       </div>
      );
   }

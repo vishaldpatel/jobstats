@@ -14,21 +14,36 @@ class JobSources extends React.Component {
       // do stuff
       let jobSource = this.props.jobSources[key];
       let stats = this.props.jobStats.jobCounts.jobSources[key];
-      return (
-        <li key={key} className="JobSourceItem">
-          <input type="checkbox" 
-            defaultChecked={jobSource.enabled} 
-            value={key}
-            onClick={(event) => { this.props.toggleJobSource(event.target.value, event.target.checked); }} />
-          {jobSource.name} -- {stats.total} jobs Found. {stats.filtered} filtered.
-        </li>
-      );
+      if (typeof(stats.filtered) !== 'undefined') {
+        return (
+          <li key={key} className="JobSourceItem">
+            <input type="checkbox" 
+              defaultChecked={jobSource.enabled} 
+              value={key}
+              onClick={(event) => { this.props.toggleJobSource(event.target.value, event.target.checked); }} />
+            <p class="SourceName">{jobSource.name}</p>
+            <p class="SourceJobCounts">{stats.filtered} of {stats.total} jobs</p>
+          </li>
+        );
+      } else {
+        return (
+          <li key={key} className="JobSourceItem">
+            <input type="checkbox" 
+              defaultChecked={jobSource.enabled} 
+              value={key}
+              onClick={(event) => { this.props.toggleJobSource(event.target.value, event.target.checked); }} />
+            <p class="SourceName">{jobSource.name}</p>
+            <p class="SourceJobCounts">{stats.total} jobs</p>
+          </li>
+        );
+      }
     });
   }
 
   render() {
-    return(      
+    return(
       <div className="JobSources">
+        <h2>Sources:</h2>
         <ul className="JobSources">
           {this.jobSources()}
         </ul>

@@ -26,13 +26,17 @@ class JobResults extends React.Component {
       if (this.state.expandedJobs[jobKey]) {
         let paragraph = parser.parse(job.paragraph);
         return (
-          <li key={`job${jobKey}`}>
-          <span id={`jobResult${jobKey}`} onClick={(e) => this.toggleExpansion(e.target)}>{job.dateCreated} | {firstLine}</span>
-          <p>{paragraph}</p>
+          <li class="JobResult" key={`job${jobKey}`}>
+            <span id={`jobResult${jobKey}`} onClick={(e) => this.toggleExpansion(e.target)}>{job.dateCreated} | {firstLine}</span>
+            <p>{paragraph}</p>
           </li>
         );
       } else {
-        return <li key={`job${jobKey}`} id={`jobResult${jobKey}`} onClick={(e) => this.toggleExpansion(e.target)}>{job.dateCreated} | {firstLine}</li>;
+        return (
+          <li class="JobResult" key={`job${jobKey}`}>
+            <span id={`jobResult${jobKey}`} onClick={(e) => this.toggleExpansion(e.target)}>{job.dateCreated} | {firstLine}</span>
+          </li>
+        );
       }
     });
   }

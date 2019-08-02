@@ -11,3 +11,110 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+h2 {
+  padding:0px;
+  margin:0px;
+  margin-top: 5px;
+  font-size: 1.5em;
+}
+
+.StatusRow {
+  background-color: #333;
+  padding: 5px;
+  font-size: 11px;
+  color: white;
+}
+
+.SourcesAndAnalytics {
+  background-color: #555;
+  font-size: 12px;
+  color: orange;
+  font-size: 12px;
+  border-right: 1px dotted;
+}
+
+ul.JobSources {
+  list-style-position: outside;
+  list-style-type: none;
+  padding-left: 0;
+}
+
+li.JobSourceItem {
+  padding: 5px;
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
+li.JobSourceItem:hover {
+  background-color: gray;
+}
+
+li.JobSourceItem input[type=checkbox] {
+  float: left;  
+  height: 22px;
+  width: 15px;
+  margin-right: 5px;
+}
+
+li.JobSourceItem p {
+  margin: 0px;
+}
+
+p.SourceJobCounts {
+  font-size: 10px;
+}
+
+.JobResults p {
+  margin-bottom: 5px;
+}
+
+.JobResults ul {
+  list-style-type: none;
+  padding-left: 0px;
+}
+
+.JobResults li {
+  border: 1px dotted gray;
+  padding: 5px;
+  font-size: 12px;
+}
+
+.JobResult span {
+  cursor: pointer; 
+  font-weight: bold;
+}
+
+div.JobGraphs {
+  background-color: gray;
+  border: 3px solid black;
+  margin-top: 15px;
+}
+
+div.JobFilters {
+  margin-top: 15px;
+}
+
+div.JobFilters input {
+  margin-right: 5px;
+  border-radius: 3px;
+  padding: 3px;
+}
+div.JobFilters button {
+  border: none;
+  border-radius: 3px;
+  padding: 4px;
+}
+
+ul.Filters {
+ list-style-type: none;
+ padding-left: 0px;
+}
+
+li.FilterItem {
+  padding: 5px;
+}
+
+li.FilterItem input[type=checkbox] {
+  margin-right: 5px;
+}

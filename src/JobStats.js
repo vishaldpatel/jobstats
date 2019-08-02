@@ -28,20 +28,23 @@ class JobStats extends React.Component {
   render() {
     return (
       <div>
-        <div className="row">
-          <StatusBar status={this.state.currentStatus} />
+        <div className="row StatusRow">
+          <div className="col-3"></div>
+          <div className="col-9">
+            <StatusBar status={this.state.currentStatus} />
+          </div>
         </div>
         <div className="row">
-          <div className="col-3">
+          <div className="col-3 SourcesAndAnalytics">
+            <JobGraphs jobStats={this.state.jobStats} />
+            <JobFilters jobFilters={this.state.jobFilters}
+                        addJobFilter={(filter) => { this.jobsData.addJobFilter(filter) }}
+                        toggleJobFilter={(filter, enabled) => { this.jobsData.toggleFilter(filter, enabled); }} />            
             <JobSources jobSources={this.state.jobSources}
                         jobStats={this.state.jobStats}        
                         toggleJobSource={(jobSourceID, enabled) => { this.jobsData.toggleJobSource(jobSourceID, enabled); }} />
-            <JobFilters jobFilters={this.state.jobFilters}
-                        addJobFilter={(filter) => { this.jobsData.addJobFilter(filter) }}
-                        toggleJobFilter={(filter, enabled) => { this.jobsData.toggleFilter(filter, enabled); }} />                        
           </div>
-          <div className="col-9">
-            <JobGraphs jobStats={this.state.jobStats} />                      
+          <div className="col-9">            
             <JobResults jobs={this.state.filteredJobs} jobStats={this.state.jobStats} />
           </div>
         </div>
@@ -51,23 +54,3 @@ class JobStats extends React.Component {
 }
 
 export default JobStats;
-
-
-// TODO:
-// Get the following widgets started!
-
-// Add URL; Scrape URL; Build Jobs data [done]
-// Shape job data [done]
-// Search / filter through jobs [doing]
-// Show (filtered) jobs. [doing]
-// Show basic stats as well as tag stats
-// Shot trends if multiple URLs
-// Need undo / redo functionailty for filters
-
-// Try to grab the company name, location, job title etc.
-// Is there a location recognizer API out there?
-// For example, if you feed it a piece of text, it should
-// pull out all the locations mentioned in that text
-// including all abbreviations "OAK" "SF" "LA" "T.Dot" etc.
-// We need a database of well-known cities and abreviations,
-// and scan each listing for them.    

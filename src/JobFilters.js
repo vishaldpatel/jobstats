@@ -38,6 +38,7 @@ class JobFilters extends React.Component {
   render() {
     return (
       <div className="JobFilters">
+        <h2>Filters:</h2>
         <input type="text" 
             onChange={(e) => this.inputChanged("newFilter", e.target.value)} 
             placeholder="Some Regex like SF|Los Angeles React|PHP etc.." />

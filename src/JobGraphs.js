@@ -47,11 +47,11 @@ class JobGraphs extends React.Component {
     .transition()
     .attr('height', d => this.scaled(d))
     .attr('width', 10)
-    .attr('transform', (d,i) => `translate(${i*15}, ${145 - this.scaled(d)})`);
+    .attr('transform', (d,i) => `translate(${(i+1)*15}, ${145 - this.scaled(d)})`);
   }
 
   componentDidMount() {
-    let width = '900px';
+    let width = '300px';
     let height = '250px;';
     var el = this.getDOMNode();
 
@@ -63,7 +63,7 @@ class JobGraphs extends React.Component {
     .append('g')
     .attr('class', 'd3-bars');
 
-    this.draw(el, [1,1,1,1,1,1]);
+    this.draw(el, [1,1,1,1,1,1,1,1]);
 
   }
 
@@ -79,7 +79,7 @@ class JobGraphs extends React.Component {
     let jobSourceCounts = jobStats.jobCounts.jobSources;
     let prevJobSourceCounts = prevProps.jobStats.jobCounts.jobSources;
     let filteredCounts = Object.keys(jobSourceCounts).map(key => jobSourceCounts[key].filtered);
-    let previousFilteredCounts = Object.keys(prevJobSourceCounts).map(key => prevJobSourceCounts[key].filtered);
+    let previousFilteredCounts = Object.keys(prevJobSourceCounts).map(key => prevJobSourceCounts[key].filtered);    
     if (filteredCounts.length > 5) {
       this.updateDrawing(el, previousFilteredCounts,filteredCounts);
     }

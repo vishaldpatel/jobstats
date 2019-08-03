@@ -190,10 +190,9 @@ class JobsData {
   deleteJobFilter(filter) {
     let state = this.state();
     this.toggleFilter(filter, false);
-    delete state.jobFilters[filter]; 
+    delete state.jobFilters[filter];
     this.client.setState(state, () => {
       this.updateStatus(`Deleted: ${filter}`);
-      this.reFilterJobs();
     });
   }
 
@@ -202,10 +201,10 @@ class JobsData {
     state.jobFilters[filter] = {
       enabled: false
     }
-    if (!state.enabledFilterKeys.includes(filter)) {
-      state.enabledFilterKeys.push(filter);
-    }
-    this.client.setState(state,() => this.addFilterToAllJobs(filter));
+    this.client.setState(state, () => {
+      this.addFilterToAllJobs(filter);
+      this.toggleFilter(filter, true);
+    });
   }
 
   toggleFilter(filter, enabled) {

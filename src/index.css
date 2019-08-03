@@ -33,6 +33,7 @@ h2 {
   color: orange;
   font-size: 12px;
   border-right: 1px dotted;
+  min-height: 99vh;
 }
 
 ul.JobSources {

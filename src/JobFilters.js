@@ -30,6 +30,11 @@ class JobFilters extends React.Component {
             value={filterKey} 
             onClick={(event) => { this.props.toggleJobFilter(event.target.value, event.target.checked); }} />
           {filterKey}
+          <button 
+            className="badge badge-dark DeleteFilter"
+            value={filterKey}
+            onClick={(event) => { this.props.deleteFilter(event.target.value); }}
+          >Delete</button>
         </li>
       );
     });
@@ -42,7 +47,7 @@ class JobFilters extends React.Component {
         <input type="text" 
             onChange={(e) => this.inputChanged("newFilter", e.target.value)} 
             placeholder="Some Regex like SF|Los Angeles React|PHP etc.." />
-        <button onClick={() => this.addFilterClicked()}>Add Filter</button>
+        <button className="btn btn-success" onClick={() => this.addFilterClicked()}>Add Filter</button>
         <ul className="Filters">
           {this.filters()}
         </ul>

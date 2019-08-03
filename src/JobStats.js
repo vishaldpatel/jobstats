@@ -39,6 +39,7 @@ class JobStats extends React.Component {
             <JobGraphs jobStats={this.state.jobStats} />
             <JobFilters jobFilters={this.state.jobFilters}
                         addJobFilter={(filter) => { this.jobsData.addJobFilter(filter) }}
+                        deleteFilter = {(filter) => { this.jobsData.deleteJobFilter(filter) }}
                         toggleJobFilter={(filter, enabled) => { this.jobsData.toggleFilter(filter, enabled); }} />            
             <JobSources jobSources={this.state.jobSources}
                         jobStats={this.state.jobStats}        

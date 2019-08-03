@@ -187,6 +187,16 @@ class JobsData {
     this.client.setState(state);
   }
 
+  deleteJobFilter(filter) {
+    let state = this.state();
+    this.toggleFilter(filter, false);
+    delete state.jobFilters[filter]; 
+    this.client.setState(state, () => {
+      this.updateStatus(`Deleted: ${filter}`);
+      this.reFilterJobs();
+    });
+  }
+
   addJobFilter(filter) {
     let state = this.state();
     state.jobFilters[filter] = {

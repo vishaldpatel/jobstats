@@ -204,6 +204,7 @@ class JobsData {
     this.client.setState(state, () => {
       this.addFilterToAllJobs(filter);
       this.toggleFilter(filter, true);
+      this.updateStatus(`Added ${filter}`);
     });
   }
 
@@ -216,7 +217,13 @@ class JobsData {
       state.enabledFilterKeys.splice(enabledFilterKeyIndex, 1);
     }
     state.jobFilters[filter].enabled = enabled;      
-    this.client.setState(state,() => this.reFilterJobs());
+    this.client.setState(state,() => {
+      this.reFilterJobs().then(() => this.updateStatus(`Turned ${filter} ${this.getFilterOnOff(enabled)}`));
+    });
+  }
+
+  getFilterOnOff(enabled) {
+    return enabled ? 'On' : 'Off';
   }
 
   toggleJobSource(jobSourceID, enabled) {
@@ -230,7 +237,9 @@ class JobsData {
     }
     state.jobSources[jobSourceID].enabled = enabled;
     state.jobStats.jobCounts.jobSources[jobSourceID].enabled = enabled;
-    this.client.setState(state,() => this.reFilterJobs());
+    this.client.setState(state,() => {
+      this.reFilterJobs().then(() => this.updateStatus(`Turned ${state.jobSources[jobSourceID].name} ${this.getFilterOnOff(enabled)}`));
+    });
   }
 
   static basicData() {

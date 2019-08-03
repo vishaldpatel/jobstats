@@ -1,3 +1,5 @@
+![Screenshot](screenshot.png "Screenshot as of August 2nd, 2019")
+
 In order to run this, clone / download the repository. CD into the directory and run:
 > npm install
 
@@ -6,6 +8,12 @@ In order to run this, clone / download the repository. CD into the directory and
 If your web browser doesn't already open, then go to http://localhost:3000/ and the app
 will begin to load. It takes some time initially, but then you should be able to filter
 with ease.
+
+--------------------------------------
+
+8/2/2019:
+- Productive day today. Added some style to the project, got deleting of filters working,
+  added July and August '19 jobs data and fixed a handful of minor bugs along the way.
 
 --------------------------------------
 

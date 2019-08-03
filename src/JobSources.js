@@ -21,8 +21,8 @@ class JobSources extends React.Component {
               defaultChecked={jobSource.enabled} 
               value={key}
               onClick={(event) => { this.props.toggleJobSource(event.target.value, event.target.checked); }} />
-            <p class="SourceName">{jobSource.name}</p>
-            <p class="SourceJobCounts">{stats.filtered} of {stats.total} jobs</p>
+            <p className="SourceName">{jobSource.name}</p>
+            <p className="SourceJobCounts">{stats.filtered} of {stats.total} jobs</p>
           </li>
         );
       } else {
@@ -32,8 +32,8 @@ class JobSources extends React.Component {
               defaultChecked={jobSource.enabled} 
               value={key}
               onClick={(event) => { this.props.toggleJobSource(event.target.value, event.target.checked); }} />
-            <p class="SourceName">{jobSource.name}</p>
-            <p class="SourceJobCounts">{stats.total} jobs</p>
+            <p className="SourceName">{jobSource.name}</p>
+            <p className="SourceJobCounts">{stats.total} jobs</p>
           </li>
         );
       }

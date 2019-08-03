@@ -104,11 +104,13 @@ div.JobFilters input {
   padding: 4px;
 }
 div.JobFilters button {
+  font-size: 0.75rem;
+}
+
+.DeleteFilter {
   border: none;
-  border-radius: 3px;
-  padding: 4px;
-  padding-left: 10px;
-  padding-right: 10px;
+  margin-left: 5px;
+  font-size: 0.5rem;
 }
 
 ul.Filters {

@@ -1,4 +1,5 @@
-- Allow users to delete filters. Show an "x" to the right of each filter.
+- The ability to hide ads.
+- Remember hidden ads, and created filters in local storage.
 - Allow combining filters for tracking.
 - Toggling a dataset should only toggle the visibility of its filtered results.
   Toggling a dataset should not affect analytics.

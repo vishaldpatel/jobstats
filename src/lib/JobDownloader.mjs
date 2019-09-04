@@ -86,7 +86,8 @@ class JobDownloader {
           state.jobIDCount = state.jobIDCount + 1;
           return state;
         }, () => {
-          if (typeof(jobData.text) !== 'undefined') {
+          if ((jobData !== null) && 
+            (typeof(jobData.text) !== 'undefined')) {
             this.cleanupAndAddJobData(jobData);
           }
           this.getJobsFromIDs(jobIDs, callback);

@@ -1,3 +1,4 @@
+- Highlight matching filters in the filtered ads.
 - The ability to hide ads.
 - Remember hidden ads, and created filters in local storage.
 - Allow combining filters for tracking.

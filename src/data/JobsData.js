@@ -256,7 +256,8 @@ class JobsData {
         '2019 - May' : false, 
         '2019 - June' : false,
         '2019 - July' : false,
-        '2019 - August' : true
+        '2019 - August' : false,
+        '2019 - September' : true,
       },
       jobSources: {
         /*
